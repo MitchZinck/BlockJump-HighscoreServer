@@ -77,7 +77,7 @@ public class PacketHandler {
 				Invocable tmp = Script.getInvocable("highscorescript/highscore.js");
 				if (tmp != null) {
 					ex = tmp.getInterface(HighscoreScript.class);
-					ex.addHighscore("name", "ass@ass.co", 1242);
+					ex.addHighscore("name", "example@example.co", 1242);
 				} else {
 					System.out.println("Failed to load+invoke test script!");
 				}
