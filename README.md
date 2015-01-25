@@ -1,4 +1,4 @@
-BlockJump
+BlockJump highscore server
 =========
 
-Android Block Jumping Game
+BlockJump's highscore server.
