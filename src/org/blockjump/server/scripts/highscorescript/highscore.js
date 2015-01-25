@@ -1,0 +1,3 @@
+function addHighscore() {
+	println("hi");
+}
