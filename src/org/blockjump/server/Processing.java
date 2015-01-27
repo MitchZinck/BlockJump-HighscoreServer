@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.blockjump.server.log.Log;
+import org.blockjump.server.log.MessageState;
 import org.blockjump.server.objects.Connection;
 import org.blockjump.server.packets.PacketBuffer;
 import org.blockjump.server.packets.PacketHandler;
@@ -18,17 +20,17 @@ import org.blockjump.server.packets.PacketHandler;
 public class Processing implements Runnable {
 	
 	private CopyOnWriteArrayList<Connection> connections;
-	private InputStream in;
-	private OutputStream out;
-	private PacketBuffer readBuffer;
-	private static long timer = 0;
 	private PacketHandler packetHandler;
-	private ArrayList<Connection> toRemove = new ArrayList<Connection>();
+	private WorkerThread workThread;
+	private long loopTime;
+	private static long timer = 0;
 	
-	public Processing(CopyOnWriteArrayList<Connection> connections) throws SQLException {
+	public Processing(CopyOnWriteArrayList<Connection> connections, PacketHandler packetHandler) throws SQLException {
 		this.connections = connections;
-		readBuffer = new PacketBuffer(128);
-		packetHandler = new PacketHandler(this);
+		this.packetHandler = packetHandler;
+		workThread = new WorkerThread(connections);
+		new Thread(workThread).start();
+		loopTime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -41,24 +43,25 @@ public class Processing implements Runnable {
 				while(it.hasNext()) {
 					Connection connection = it.next();
 					try {
-						in = connection.getSocket().getInputStream();
-						out = connection.getSocket().getOutputStream();
-						readData(connection.getSocket());
+						readData(connection);
 					} catch (SocketTimeoutException s) {
-						System.out.println("Read timeout for user: " + connection.getSocket().getInetAddress());
+						Log.log("Read timeout for user: " + connection.getUserId(), MessageState.MESSAGE);
 					} catch (SocketException s) {
-						System.out.println("Connection removed for user: " + connection.getSocket().getInetAddress());
-						toRemove.add(connection);
+						Log.log("Connection removed for user: " + connection.getUserId(), MessageState.MESSAGE);
+						workThread.getRemove().add(connection);
 						Server.connectionCount--;
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-				
-				connections.removeAll(toRemove);
 			}
 			
+			if(System.currentTimeMillis() - loopTime > 10000) {
+				loopTime = System.currentTimeMillis();
+				long engineUsage = (loopTime - timer < 1000) ? (loopTime - timer) / 10 : 100;
+				Log.log("Engine Usage: " + engineUsage + "%", MessageState.ENGINE);
+			}
 			if(System.currentTimeMillis() - timer < 1000) {
 				try {
 					Thread.sleep(1000 - (System.currentTimeMillis() - timer));
@@ -67,7 +70,7 @@ public class Processing implements Runnable {
 					e.printStackTrace();
 				}
 			} else {
-				System.out.println("NOTIFICATION: LOOP HAS EXCEEDED 1 SECOND TO PROCESS.");
+				Log.log("LOOP HAS EXCEEDED 1 SECOND TO PROCESS.", MessageState.MESSAGE);
 			}
 		}
 	}
@@ -75,18 +78,16 @@ public class Processing implements Runnable {
 	public boolean read() {
 		return true;
 	}
-	
-	public void write(PacketBuffer packet) throws IOException {
-		out.write(packet.getBuffer());
-	}
-	
-	public void readData(Socket socket) throws IOException {
-		int packetSize = in.read();
-		in.mark(packetSize);
+
+	public void readData(Connection c) throws IOException {
+		PacketBuffer readBuffer = new PacketBuffer(Server.PACKET_CAPACITY);
+		int packetSize = c.getIn().read();
+		c.getIn().mark(packetSize);
 		byte[] buffer = new byte[packetSize];
-		in.read(buffer, 0, buffer.length);
+		c.getIn().read(buffer, 0, buffer.length);
 		readBuffer.setBuffer(buffer);
-		packetHandler.handle(readBuffer, socket);
+		c.setPacket(readBuffer);
+		packetHandler.addProcess(c);
 	}
 	
 }

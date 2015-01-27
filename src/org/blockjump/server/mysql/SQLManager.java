@@ -7,8 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.blockjump.server.log.Log;
+import org.blockjump.server.log.MessageState;
 import org.blockjump.server.objects.User;
-import org.blockjump.server.packets.PacketBuffer;
 
 public class SQLManager {
 	
@@ -28,7 +29,7 @@ public class SQLManager {
 	}
 	
 	public void addHighscore(String name, String email, long score) {
-        System.out.println("Adding highscore for user " + name + " with a score of " + score + "....");
+        Log.log("Adding highscore for user " + name + " with a score of " + score + "....", MessageState.ENGINE);
         
 		try {
 			if(connection.isClosed()) {
@@ -41,10 +42,10 @@ public class SQLManager {
             statement.setLong(3, score);
             statement.executeUpdate();
             
-            System.out.println("Successfully added " + name + " with a score of " + score + "!");
+            Log.log("Successfully added " + name + " with a score of " + score + "!", MessageState.ENGINE);
 
 		} catch (SQLException ex) {
-			System.out.println("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode());
+			Log.log("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode(), MessageState.ERROR);
 		} finally {
 			try {
 				if (statement != null) {
@@ -55,7 +56,7 @@ public class SQLManager {
 				}
 
 			} catch (SQLException ex) {
-				System.out.println("Lol this would never happen.");
+				Log.log("I don't even know what happened sql error: " + ex.getErrorCode(), MessageState.ERROR);
 			}
 		}
 	}
@@ -63,7 +64,7 @@ public class SQLManager {
 	public ArrayList<User> getHighscore(String name) {
         ArrayList<User> userList = new ArrayList<User>();
 		
-		System.out.println("Returning highscore for user " + name + ".");
+		Log.log("Returning highscore for user " + name + ".", MessageState.ENGINE);
 	        
 		try {
 			if(connection.isClosed()) {
@@ -78,10 +79,10 @@ public class SQLManager {
             	userList.add(new User(resultSet.getString("username"), resultSet.getString("email"), resultSet.getLong("score"), resultSet.getLong("user_id")));
             }
             
-            System.out.println("Successfully completed query of " + name + "!");
+            Log.log("Successfully completed query of " + name + "!", MessageState.ENGINE);
 
 		} catch (SQLException ex) {
-			System.out.println("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode());
+			Log.log("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode(), MessageState.ERROR);
 		} finally {
 			try {
 				if (statement != null) {
@@ -92,7 +93,7 @@ public class SQLManager {
 				}
 
 			} catch (SQLException ex) {
-				System.out.println("Lol this would never happen.");
+				Log.log("I don't even know what happened sql error: " + ex.getErrorCode(), MessageState.ERROR);
 			}
 		}
 		
