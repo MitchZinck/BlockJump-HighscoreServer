@@ -29,7 +29,7 @@ public class SQLManager {
 	}
 	
 	public void addHighscore(String name, String email, long score) {
-        Log.log("Adding highscore for user " + name + " with a score of " + score + "....", MessageState.ENGINE);
+        Log.log("Adding highscore for user " + name + " with a score of " + score + "....", MessageState.MESSAGE);
         
 		try {
 			if(connection.isClosed()) {
@@ -42,7 +42,7 @@ public class SQLManager {
             statement.setLong(3, score);
             statement.executeUpdate();
             
-            Log.log("Successfully added " + name + " with a score of " + score + "!", MessageState.ENGINE);
+            Log.log("Successfully added " + name + " with a score of " + score + "!", MessageState.MESSAGE);
 
 		} catch (SQLException ex) {
 			Log.log("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode(), MessageState.ERROR);
@@ -64,7 +64,7 @@ public class SQLManager {
 	public ArrayList<User> getHighscore(String name) {
         ArrayList<User> userList = new ArrayList<User>();
 		
-		Log.log("Returning highscore for user " + name + ".", MessageState.ENGINE);
+		Log.log("Returning highscore for user " + name + ".", MessageState.MESSAGE);
 	        
 		try {
 			if(connection.isClosed()) {
@@ -72,14 +72,13 @@ public class SQLManager {
 			}
 			
 		    statement = connection.prepareStatement("SELECT * FROM highscores.users WHERE `username` = ?");
-            statement.setString(1, name);
-            resultSet = statement.executeQuery();            
-            
+		    statement.setString(1, name);
+          
             while(resultSet.next()) {
             	userList.add(new User(resultSet.getString("username"), resultSet.getString("email"), resultSet.getLong("score"), resultSet.getLong("user_id")));
             }
             
-            Log.log("Successfully completed query of " + name + "!", MessageState.ENGINE);
+            Log.log("Successfully completed query of " + name + "!", MessageState.MESSAGE);
 
 		} catch (SQLException ex) {
 			Log.log("User: " + user + " closed on error \"SQLEXCEPTION\" for the following reasons: " + ex.getErrorCode(), MessageState.ERROR);

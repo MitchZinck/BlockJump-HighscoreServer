@@ -21,7 +21,7 @@ public class Log {
 				return true;
 				
 			case MESSAGE:
-				if(Server.DEBUG) {
+				if(Server.DEBUG == true) {
 					return true;
 				}
 			return false;

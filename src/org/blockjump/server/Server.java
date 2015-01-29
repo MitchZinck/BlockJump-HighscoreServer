@@ -1,5 +1,7 @@
 package org.blockjump.server;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,10 +19,11 @@ public class Server {
 	private CopyOnWriteArrayList<Connection> connections = new CopyOnWriteArrayList<Connection>();
 	public static ServerState state;	
 	public static int connectionCount = 0;
-	public final static boolean DEBUG = false;
+	public static boolean DEBUG;
 	public final static int PACKET_CAPACITY = 512;
 
 	public Server(int i) throws IOException, SQLException {
+		DEBUG = debug();
 		Log.log("Server started on port " + i + ".", MessageState.ENGINE);
 		serverSocket = new ServerSocket(i);
 		PacketHandler packetHandler = new PacketHandler();
@@ -40,7 +43,7 @@ public class Server {
 			}
 			try {
 				Socket socket = serverSocket.accept();
-				socket.setSoTimeout(500);
+				socket.setSoTimeout(40);
 				connectionCount++;
 				connections.add(new Connection(socket, connectionCount, socket.getInputStream(), socket.getOutputStream()));
 				Log.log("Connection " + socket.getInetAddress() + " on port " + socket.getPort() + " connected.", MessageState.MESSAGE);
@@ -51,6 +54,25 @@ public class Server {
 		}
 		serverSocket.close();
 		Log.log("Server ended...", MessageState.ENGINE);
+	}
+	
+	public boolean debug() {
+		String debug = "";
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader("password.txt"));
+			br.readLine();
+			debug = br.readLine();
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		if(debug.equals("true")) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public static void main(String[] args) throws SQLException {

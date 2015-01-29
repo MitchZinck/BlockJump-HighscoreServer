@@ -22,6 +22,7 @@ public class Processing implements Runnable {
 	private CopyOnWriteArrayList<Connection> connections;
 	private PacketHandler packetHandler;
 	private WorkerThread workThread;
+	private String[] cls = new String[] {"cmd.exe", "/c", "cls"};
 	private long loopTime;
 	private static long timer = 0;
 	
@@ -35,7 +36,13 @@ public class Processing implements Runnable {
 
 	@Override
 	public void run() { //Add error logs
-		while(Server.state == ServerState.RUNNING) {
+		while(Server.state == ServerState.RUNNING) {			
+			try {
+				Runtime.getRuntime().exec(cls);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			timer = System.currentTimeMillis();
 			
 			if(connections.size() > 0) {
@@ -56,12 +63,11 @@ public class Processing implements Runnable {
 					}
 				}
 			}
-			
-			if(System.currentTimeMillis() - loopTime > 10000) {
-				loopTime = System.currentTimeMillis();
-				long engineUsage = (loopTime - timer < 1000) ? (loopTime - timer) / 10 : 100;
-				Log.log("Engine Usage: " + engineUsage + "%", MessageState.ENGINE);
-			}
+
+			loopTime = System.currentTimeMillis();
+			long engineUsage = (loopTime - timer < 1000) ? (loopTime - timer) / 10 : 100;
+			Log.log("Engine Usage: " + engineUsage + "%", MessageState.ENGINE);
+				
 			if(System.currentTimeMillis() - timer < 1000) {
 				try {
 					Thread.sleep(1000 - (System.currentTimeMillis() - timer));
@@ -86,8 +92,7 @@ public class Processing implements Runnable {
 		byte[] buffer = new byte[packetSize];
 		c.getIn().read(buffer, 0, buffer.length);
 		readBuffer.setBuffer(buffer);
-		c.setPacket(readBuffer);
-		packetHandler.addProcess(c);
+		packetHandler.addProcess(c, readBuffer);
 	}
 	
 }

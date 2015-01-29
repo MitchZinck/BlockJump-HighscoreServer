@@ -12,7 +12,6 @@ public class Connection {
 	private InputStream in;
 	private OutputStream out;
 	private long userId;
-	private PacketBuffer packet;
 
 	public Connection(Socket socket, long userId, InputStream in, OutputStream out) {
 		this.socket = socket;
@@ -20,15 +19,7 @@ public class Connection {
 		this.in = in;
 		this.out = out;
 	}	
-	
-	public PacketBuffer getPacket() {
-		return packet;
-	}
-	
-	public void setPacket(PacketBuffer packet) {
-		this.packet = packet;
-	}
-	
+
 	public Socket getSocket() {
 		return socket;
 	}
