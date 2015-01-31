@@ -22,7 +22,7 @@ public class WorkerThread implements Runnable {
 			if(!remove.isEmpty()) {
 				connections.removeAll(remove);
 				remove.clear();
-				Log.log("Removed connections successfully.", MessageState.ENGINE);
+				Log.log("Removed processes successfully.", MessageState.ENGINE);
 			} else {
 				try {
 					Thread.sleep(100);
@@ -34,7 +34,7 @@ public class WorkerThread implements Runnable {
 		}		
 	}
 
-	public synchronized ArrayList<Connection> getRemove() {
+	public synchronized ArrayList<Connection> getToRemove() {
 		return remove;
 	}	
 	

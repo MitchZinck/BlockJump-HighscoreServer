@@ -1,55 +1,27 @@
 package org.blockjump.server.objects;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-
-import org.blockjump.server.packets.PacketBuffer;
+import org.jboss.netty.channel.Channel;
 
 public class Connection {
 	
-	private Socket socket;
-	private InputStream in;
-	private OutputStream out;
-	private long userId;
+	private Channel channel;
+	private String buffer;
 
-	public Connection(Socket socket, long userId, InputStream in, OutputStream out) {
-		this.socket = socket;
-		this.userId = userId;
-		this.in = in;
-		this.out = out;
-	}	
-
-	public Socket getSocket() {
-		return socket;
+	public Connection(Channel channel, String buf) {
+		this.channel = channel;
+		this.buffer = buf;
 	}
 
-	public InputStream getIn() {
-		return in;
+	public Channel getChannel() {
+		return channel;
 	}
 
-	public void setIn(InputStream in) {
-		this.in = in;
+	public String getBuffer() {
+		return buffer;
 	}
 
-	public OutputStream getOut() {
-		return out;
-	}
-
-	public void setOut(OutputStream out) {
-		this.out = out;
-	}
-
-	public long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
-
-	public void setSocket(Socket socket) {
-		this.socket = socket;
+	public void setBuffer(String buffer) {
+		this.buffer = buffer;
 	}
 	
 }

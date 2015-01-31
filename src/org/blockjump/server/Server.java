@@ -3,57 +3,57 @@ package org.blockjump.server;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
 import java.sql.SQLException;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Iterator;
+import java.util.concurrent.Executors;
 
 import org.blockjump.server.log.Log;
 import org.blockjump.server.log.MessageState;
 import org.blockjump.server.objects.Connection;
 import org.blockjump.server.packets.PacketHandler;
+import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.ChannelFactory;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 public class Server {
 	
-	private ServerSocket serverSocket;
-	private CopyOnWriteArrayList<Connection> connections = new CopyOnWriteArrayList<Connection>();
+	private PacketHandler packetHandler;
+	
 	public static ServerState state;	
-	public static int connectionCount = 0;
 	public static boolean DEBUG;
+	public static int connectionCount = 0;
 	public final static int PACKET_CAPACITY = 512;
 
 	public Server(int i) throws IOException, SQLException {
 		DEBUG = debug();
-		Log.log("Server started on port " + i + ".", MessageState.ENGINE);
-		serverSocket = new ServerSocket(i);
-		PacketHandler packetHandler = new PacketHandler();
+		packetHandler = new PacketHandler();
 		new Thread(packetHandler).start();
-		Processing proc = new Processing(connections, packetHandler);
-		new Thread(proc).start();
-		listen();
-	}
-	
-	public void listen() throws IOException {
-		long timer = System.currentTimeMillis();
-		Log.log("Starting to listen for connections.", MessageState.ENGINE);
-		while(state == ServerState.RUNNING) {
-			if(System.currentTimeMillis() - timer > 10000) {
-				Log.log("*************************************\nCurrently there are " + connectionCount + " connections!\n*************************************", MessageState.ENGINE);
-				timer = System.currentTimeMillis();
+		
+		ChannelFactory factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool());
+		ServerBootstrap bootstrap = new ServerBootstrap(factory);
+
+		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+			public ChannelPipeline getPipeline() {
+				return Channels.pipeline(new ServerHandler(packetHandler));
 			}
-			try {
-				Socket socket = serverSocket.accept();
-				socket.setSoTimeout(40);
-				connectionCount++;
-				connections.add(new Connection(socket, connectionCount, socket.getInputStream(), socket.getOutputStream()));
-				Log.log("Connection " + socket.getInetAddress() + " on port " + socket.getPort() + " connected.", MessageState.MESSAGE);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		serverSocket.close();
-		Log.log("Server ended...", MessageState.ENGINE);
+		});
+
+		bootstrap.setOption("child.tcpNoDelay", true);
+		bootstrap.setOption("child.keepAlive", true);
+		bootstrap.bind(new InetSocketAddress(i));
+		
+		Log.log("Server started on port " + i + ".", MessageState.ENGINE);		
 	}
 	
 	public boolean debug() {
