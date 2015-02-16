@@ -15,7 +15,6 @@ import javax.script.Invocable;
 
 import org.blockjump.server.Server;
 import org.blockjump.server.ServerState;
-import org.blockjump.server.WorkerThread;
 import org.blockjump.server.log.Log;
 import org.blockjump.server.log.MessageState;
 import org.blockjump.server.mysql.SQLManager;
@@ -28,36 +27,15 @@ public class PacketHandler implements Runnable{
 	
 	private SQLManager sqlManager;
 	private CopyOnWriteArrayList<Connection> processList = new CopyOnWriteArrayList<Connection>();
-	private WorkerThread wt;
+	private ArrayList<Connection> toRemove = new ArrayList<Connection>();
 	
-	public PacketHandler() throws SQLException {
-		try {
-			sqlManager = new SQLManager("root", password()); //change so that the password is read on load.
-			wt = new WorkerThread(processList);
-			new Thread(wt).start();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public PacketHandler(SQLManager sqlManager) throws SQLException {
+		this.sqlManager = sqlManager; 
 	}
 	
 	public synchronized void addProcess(Connection c) {
 		processList.add(c);
 	}
-	
-	public String password() {
-		String pass = "";
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader("password.txt"));
-			pass = br.readLine();
-			br.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		return pass;
-	}	
 	
 	public void write(PacketBuffer packet, OutputStream out) throws IOException {
 		out.write(packet.getBuffer());
@@ -93,17 +71,6 @@ public class PacketHandler implements Runnable{
 				sqlManager.addHighscore(name, email, score);
 				Log.log("Successfully added highscore of " + name + " from: " + c.getChannel().getRemoteAddress(), MessageState.ENGINE);
 			break;
-			
-			case 53: 
-				HighscoreScript ex;
-				Invocable tmp = Script.getInvocable("highscorescript/highscore.js");
-				if (tmp != null) {
-					ex = tmp.getInterface(HighscoreScript.class);
-					ex.addHighscore("name", "example@example.co", 1242);
-				} else {
-					//Log.log("Failed to load+invoke test script!");
-				}
-			break;
 				
 		}
 	}
@@ -115,12 +82,14 @@ public class PacketHandler implements Runnable{
 				for(Connection c : processList) {
 					try {
 						handle(c);
-						wt.getToRemove().add(c);
+						toRemove.add(c);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
+				
+				processList.removeAll(toRemove);
 			} else {
 				try {
 					Thread.sleep(1000);

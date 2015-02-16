@@ -1,3 +1,3 @@
-function addHighscore() {
-	println("hi");
+function addHighscore(text) {
+	var json = JSON.
 }

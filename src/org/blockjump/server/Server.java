@@ -4,21 +4,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.Timer;
 import java.util.concurrent.Executors;
 
 import org.blockjump.server.log.Log;
 import org.blockjump.server.log.MessageState;
-import org.blockjump.server.objects.Connection;
+import org.blockjump.server.mysql.SQLManager;
 import org.blockjump.server.packets.PacketHandler;
+import org.blockjump.server.scripts.HighscoreScript;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -34,10 +28,19 @@ public class Server {
 	public static boolean DEBUG;
 	public static int connectionCount = 0;
 	public final static int PACKET_CAPACITY = 512;
+	private Timer service;
+	private SQLManager sqlManager;
 
 	public Server(int i) throws IOException, SQLException {
+		try {
+			sqlManager = new SQLManager("root", password());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
 		DEBUG = debug();
-		packetHandler = new PacketHandler();
+		packetHandler = new PacketHandler(sqlManager);
 		new Thread(packetHandler).start();
 		
 		ChannelFactory factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool());
@@ -53,8 +56,25 @@ public class Server {
 		bootstrap.setOption("child.keepAlive", true);
 		bootstrap.bind(new InetSocketAddress(i));
 		
-		Log.log("Server started on port " + i + ".", MessageState.ENGINE);		
-	}
+		Log.log("Server started on port " + i + ".", MessageState.ENGINE);	
+		
+		service = new Timer();
+		service.scheduleAtFixedRate(new HighscoreScript(sqlManager), 1, 600000);
+	}	
+	
+	public String password() {
+		String pass = "";
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader("password.txt"));
+			pass = br.readLine();
+			br.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		return pass;
+	}	
 	
 	public boolean debug() {
 		String debug = "";
