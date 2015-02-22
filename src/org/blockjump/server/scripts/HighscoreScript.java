@@ -6,32 +6,30 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.TimerTask;
+import java.util.Map;
+import java.util.TreeMap;
 
-import javax.script.Invocable;
-import javax.script.ScriptException;
-
+import org.blockjump.server.log.Log;
+import org.blockjump.server.log.MessageState;
 import org.blockjump.server.mysql.SQLManager;
 
-public class HighscoreScript extends TimerTask {
+public class HighscoreScript {
 	
 	private SQLManager sqlManager;
 	
 	public HighscoreScript(SQLManager sqlManager) {
 		this.sqlManager = sqlManager;
-	}
-
-	@Override
-	public void run() {
+		
 		//Invocable inv = Script.getInvocable("C:\\Users\\mitchell\\workspace\\BlockJump-Server\\src\\org\\blockjump\\server\\scripts\\highscorescript\\highscore.js");
 		String text = "[";
 		
-		HashMap<String, Long> list = sqlManager.updateHighscores();
+		ArrayList<TreeMap<String, Long>> list = sqlManager.updateHighscores();
 		
-		for(String s : list.keySet()) {
-			text += "{\"name\":\"" + s +"\",\"score\":" + list.get(s)+ "},";
+		for(TreeMap<String, Long> s : list) {
+			Log.log(s.firstKey(), MessageState.MESSAGE);
+			text += "{\"name\":\"" + s.firstKey() +"\",\"score\":" + s.firstEntry().getValue()+ "},";
 		}
 		
 		text.substring(text.length() - 1, text.length());
@@ -43,15 +41,15 @@ public class HighscoreScript extends TimerTask {
 		    //exception handling left as an exercise for the reader
 		}
 		
-//		try {
-//			inv.invokeFunction("addHighscore", text);
-//		} catch (NoSuchMethodException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (ScriptException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}	
+//				try {
+//					inv.invokeFunction("addHighscore", text);
+//				} catch (NoSuchMethodException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (ScriptException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}	
 		
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("myfile.txt", true)))) {
 			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

@@ -58,8 +58,7 @@ public class Server {
 		
 		Log.log("Server started on port " + i + ".", MessageState.ENGINE);	
 		
-		service = new Timer();
-		service.scheduleAtFixedRate(new HighscoreScript(sqlManager), 1, 600000);
+		new HighscoreScript(sqlManager);
 	}	
 	
 	public String password() {
