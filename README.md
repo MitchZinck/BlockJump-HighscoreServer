@@ -4,6 +4,7 @@ BlockJump highscore server
 BlockJump's highscore server.
 
 TO-DO:
+
 More documentation
 
 Clean code
