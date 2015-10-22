@@ -1,47 +1,47 @@
 package org.blockjump.server.objects;
 
 public class User {
-	
-	private String name, email;
-	private long score, userId;
-	
-	public User(String name, String email, long score, long userId) {
-		this.name = name;
-		this.email = email;
-		this.score = score;
-		this.userId = userId;
-	}
 
-	public String getName() {
-		return name;
-	}
+    private String name, email;
+    private long   score, userId;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public User(String name, String email, long score, long userId) {
+        this.name = name;
+        this.email = email;
+        this.score = score;
+        this.userId = userId;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public long getScore() {
-		return score;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setScore(long score) {
-		this.score = score;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public long getUserId() {
-		return userId;
-	}
+    public long getScore() {
+        return score;
+    }
 
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
-	
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
 }

@@ -10,27 +10,27 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
 public class ServerHandler extends SimpleChannelHandler {
-	
-	private PacketHandler packetHandler;
 
-	public ServerHandler(PacketHandler packetHandler) {
-		this.packetHandler = packetHandler;
-	}
-	
-	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-		ChannelBuffer buf = (ChannelBuffer) e.getMessage();
-		String message = "";
-		while(buf.readable()) {
-			message += (char) buf.readByte();
-		}
-		packetHandler.addProcess(new Connection(e.getChannel(), message));
-	}
+    private PacketHandler packetHandler;
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		Channel ch = e.getChannel();
-		ch.close();
-	}
-	
+    public ServerHandler(PacketHandler packetHandler) {
+        this.packetHandler = packetHandler;
+    }
+
+    @Override
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+        ChannelBuffer buf = (ChannelBuffer) e.getMessage();
+        String message = "";
+        while (buf.readable()) {
+            message += (char) buf.readByte();
+        }
+        packetHandler.addProcess(new Connection(e.getChannel(), message));
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+        Channel ch = e.getChannel();
+        ch.close();
+    }
+
 }

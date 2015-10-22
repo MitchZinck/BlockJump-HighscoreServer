@@ -3,25 +3,25 @@ package org.blockjump.server.objects;
 import org.jboss.netty.channel.Channel;
 
 public class Connection {
-	
-	private Channel channel;
-	private String buffer;
 
-	public Connection(Channel channel, String buf) {
-		this.channel = channel;
-		this.buffer = buf;
-	}
+    private Channel channel;
+    private String  buffer;
 
-	public Channel getChannel() {
-		return channel;
-	}
+    public Connection(Channel channel, String buf) {
+        this.channel = channel;
+        this.buffer = buf;
+    }
 
-	public String getBuffer() {
-		return buffer;
-	}
+    public Channel getChannel() {
+        return channel;
+    }
 
-	public void setBuffer(String buffer) {
-		this.buffer = buffer;
-	}
-	
+    public String getBuffer() {
+        return buffer;
+    }
+
+    public void setBuffer(String buffer) {
+        this.buffer = buffer;
+    }
+
 }
